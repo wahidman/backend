@@ -4,7 +4,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const midtransClient = require('midtrans-client');
-
+const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 const PORT = process.env.PORT || 5001;
 
@@ -15,14 +15,18 @@ app.use(bodyParser.json());
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
   protocol: 'postgres',
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
-  },
+  logging: false, // Matikan logging query SQL
+  dialectOptions: isProduction
+    ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      }
+    : {}, // Tidak menggunakan SSL jika bukan di produksi
 });
 
+module.exports = sequelize;
 
 // Definisi Model Order
 const Order = sequelize.define('Order', {
